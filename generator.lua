@@ -20,7 +20,7 @@ for i,v in pairs(assemblies) do
 
               local current_class_fields = mono_class_enumFields(current_class);
 
-              printf("namespace engine::offsets::" .. v.namespace .. to_snake_case(v.classname) .. "\n{");
+              printf("namespace engine::offsets::" .. to_snake_case(v.namespace) .. to_snake_case(v.classname) .. "\n{");
 
               for i2,v2 in pairs(current_class_fields) do
                   print("	constexpr auto", to_snake_case(v2.name) .. " = 0x" .. string.format("%X", v2.offset) .. ";");
