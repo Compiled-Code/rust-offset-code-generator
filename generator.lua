@@ -1,33 +1,40 @@
-local function to_snake_case(s)
-  s = s:gsub('(%S)(%u)', '%1_%2'):lower()
+local options = {
+    assembly = "Assembly-CSharp.dll",
 
-  return s
+    classes =
+    {
+        { nil, "BasePlayer" }
+    }
+};
+
+local function fix_string(string)
+    return string:gsub(">", "_"):gsub("<", "_"):gsub('(%S)(%u)', '%1_%2'):lower();
 end
 
-local assemblies = mono_enumAssemblies();
-
-for i,v in pairs(assemblies) do
-    local image = mono_getImageFromAssembly(v);
-
+local function image_callback(image)
     local image_name = mono_image_get_name(image);
 
-    if (image_name == "Assembly-CSharp.dll") then
-       local classes = mono_image_enumClasses(image);
+    if (image_name == options.assembly) then
+        for _,current_class_data in pairs(options.classes) do
+            local current_class = mono_findClass(current_class_data[1] or "", current_class_data[2]);
 
-       for i,v in pairs(classes) do
-           if (v.classname == "BasePlayer") then
-              local current_class = mono_findClass(v.namespace, v.classname);
+            local current_class_fields = mono_class_enumFields(current_class);
 
-              local current_class_fields = mono_class_enumFields(current_class);
+            if (current_class_data[1] ~= nil) then
+                print("namespace engine::" .. fix_string(current_class_data[1]) .. "::" .. fix_string(current_class_data[2]) .. "::offsets" .. "\n{");
+            else
+                print("namespace engine::" .. fix_string(current_class_data[2]) .. "::offsets" .. "\n{");
+            end
 
-              printf("namespace engine::offsets::" .. to_snake_case(v.namespace) .. "::" .. to_snake_case(v.classname) .. "\n{");
+            for _,current_class_field in pairs(current_class_fields) do
+                local current_class_field_offset = string.format("%X", current_class_field.offset);
 
-              for i2,v2 in pairs(current_class_fields) do
-                  print("	constexpr auto", to_snake_case(v2.name) .. " = 0x" .. string.format("%X", v2.offset) .. ";");
-              end
+                print("constexpr auto", fix_string(current_class_field.name), "= 0x" .. current_class_field_offset .. ";");
+            end
 
-              print("}");
-           end
-       end
+            print("}\n");
+        end
     end
 end
+
+mono_enumImages(image_callback);
