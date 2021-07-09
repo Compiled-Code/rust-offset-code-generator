@@ -1,4 +1,5 @@
-local options = {
+local options = 
+{
     assembly = "Assembly-CSharp.dll",
 
     classes =
