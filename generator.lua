@@ -3,7 +3,7 @@ local options = {
 
     classes =
     {
-        { nil, "BasePlayer" }
+        { nil, "BasePlayer" }, { nil, "BaseNetworkable" }
     }
 };
 
@@ -29,7 +29,7 @@ local function image_callback(image)
             for _,current_class_field in pairs(current_class_fields) do
                 local current_class_field_offset = string.format("%X", current_class_field.offset);
 
-                print("constexpr auto", fix_string(current_class_field.name), "= 0x" .. current_class_field_offset .. ";");
+                print("	constexpr auto", fix_string(current_class_field.name), "= 0x" .. current_class_field_offset .. ";");
             end
 
             print("}\n");
